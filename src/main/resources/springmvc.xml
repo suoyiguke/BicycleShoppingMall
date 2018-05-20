@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+
+    <context:component-scan base-package="com.yinkai.springcustom"></context:component-scan>
+    <context:component-scan base-package="com.yinkai.controller"></context:component-scan>
+    <context:component-scan base-package="com.yinkai.interceptor"></context:component-scan>
+    <context:component-scan base-package="com.yinkai.realm"></context:component-scan>
+
+    <!-- 配置注解驱动 -->
+    <mvc:annotation-driven conversion-service="conversionService">
+
+        <mvc:message-converters register-defaults="true">
+            <!-- 配置Fastjson支持 -->
+            <bean
+                    class="com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter">
+                <property name="supportedMediaTypes">
+                    <list>
+                        <value>text/html;charset=UTF-8</value>
+                        <value>application/json</value>
+                    </list>
+                </property>
+                <property name="features">
+                    <!--使用两个注解的设置常量 -->
+                    <list>
+                        <!-- 输出key时是否使用双引号 -->
+                        <value>QuoteFieldNames</value>
+                        <!-- 是否输出值为null的字段 -->
+                        <!-- <value>WriteMapNullValue</value> -->
+                        <!-- 数值字段如果为null,输出为0,而非null -->
+                        <value>WriteNullNumberAsZero</value>
+                        <!-- List字段如果为null,输出为[],而非null -->
+                        <value>WriteNullListAsEmpty</value>
+                        <!-- 字符类型字段如果为null,输出为"",而非null -->
+                        <value>WriteNullStringAsEmpty</value>
+                        <!-- Boolean字段如果为null,输出为false,而非null -->
+                        <value>WriteNullBooleanAsFalse</value>
+                        <!-- null String不输出 -->
+                        <value>WriteNullStringAsEmpty</value>
+                        <!-- null String也要输出 -->
+                        <!-- <value>WriteMapNullValue</value> -->
+
+                        <!-- Date的日期转换器 -->
+                        <value>WriteDateUseDateFormat</value>
+                    </list>
+                </property>
+            </bean>
+        </mvc:message-converters>
+
+
+    </mvc:annotation-driven>
+
+    <!-- 视图解析器 -->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+        <property name="contentType" value="text/html;charset=utf-8"/>
+        <property name="prefix" value="/WEB-INF/"/>
+        <property name="suffix" value=".jsp"/>
+        <property name="order" value="0"/>
+    </bean>
+
+
+    <!-- 配置资源映射 -->
+    <!--<mvc:resources location="/css/" mapping="/css/**"/>-->
+    <!--<mvc:resources location="/js/" mapping="/js/**"/>-->
+    <!--<mvc:resources location="/images/" mapping="/images/**"/>-->
+    <!--<mvc:resources location="/json/" mapping="/json/**"/>-->
+
+
+
+
+    <!-- 异常处理器 -->
+    <!--<bean id="handlerExceptionResolver" class="com.yinkai.portal.exception.CutomExceptionResolver"/>-->
+
+
+    <!-- 第二步： 创建convertion-Service ，并注入dateConvert-->
+    <bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+        <property name="converters">
+            <set>
+                <ref bean="dateConvert"/>
+            </set>
+        </property>
+    </bean>
+    <!-- 第一步:  创建自定义日期转换规则 -->
+    <bean id="dateConvert" class="com.yinkai.converter.DateConvert"/>
+
+
+    <!-- SpringMVC上传文件时，需要配置MultipartResolver处理器 -->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="defaultEncoding" value="UTF-8"/>
+        <!-- 指定所上传文件的总大小不能超过200KB。注意maxUploadSize属性的限制不是针对单个文件，而是所有文件的容量之和 -->
+        <property name="maxUploadSize" value="200000"/>
+    </bean>
+
+
+    <mvc:interceptors>
+        <!--前用户的登录状态是否可以访问后台的一些服务-->
+        <mvc:interceptor>
+
+            <mvc:mapping path="/getUser*" />
+            <mvc:mapping path="/addUser*" />
+            <mvc:mapping path="/deleteLikeTopic*" />
+            <mvc:mapping path="/addLikeTopic*" />
+            <mvc:mapping path="/getLikeTopicPageQuery*" />
+            <mvc:mapping path="/getThisSchool*" />
+            <mvc:mapping path="/addTopic*" />
+            <mvc:mapping path="/addReply*" />
+            <mvc:mapping path="/getUserLikeState*" />
+            <mvc:mapping path="/getMyTopic*" />
+            <mvc:mapping path="/deleteTopic*" />
+
+            <!-- 不进行拦截 -->
+          <!--  <mvc:exclude-mapping path="/index.html"/>-->
+            <bean class="com.yinkai.interceptor.weixinAppInterceptor"/>
+        </mvc:interceptor>
+
+        <!-- 使用bean定义一个Interceptor，直接定义在mvc:interceptors根下面的Interceptor将拦截所有的请求 -->
+        <!--<bean class="com.yinkai.interceptor.FileTypeInterceptor"/>-->
+        <mvc:interceptor>
+            <mvc:mapping path="/addTopic*"/>
+            <mvc:mapping path="/addUser*"/>
+            <!-- 定义在mvc:interceptor下面的表示是对特定的请求才进行拦截的 -->
+            <bean class="com.yinkai.interceptor.FileTypeInterceptor"/>
+        </mvc:interceptor>
+
+    </mvc:interceptors>
+
+
+
+</beans>

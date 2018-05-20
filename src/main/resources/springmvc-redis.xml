@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:property-placeholder location="classpath:properties/jedis.properties" ignore-unresolvable="true" />
+    <!-- 配置redis数据库连接池 -->
+    <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+        <property name="maxTotal" value="${redis.pool.maxActive}" />
+        <property name="maxIdle" value="${redis.pool.maxIdle}" />
+        <property name="minIdle" value="${redis.pool.minIdle}" />
+        <property name="maxWaitMillis" value="${redis.pool.maxWait}" />
+        <property name="lifo" value="${redis.pool.lifo}" />
+        <property name="testOnBorrow" value="${redis.pool.testOnBorrow}" />
+    </bean>
+
+
+    <!--在工具类中需要注入redis.clients.jedis.ShardedJedisPool-->
+    <!-- 配置redis共享连接池，业务层主要通过该bean访问redis服务器 -->
+    <bean id="shardedJedisPool" class="redis.clients.jedis.ShardedJedisPool">
+        <constructor-arg index="0" ref="jedisPoolConfig" />
+        <constructor-arg index="1">
+            <list>
+                <bean class="redis.clients.jedis.JedisShardInfo">
+                    <constructor-arg index="0" value="${redis.uri.0}" />
+                </bean>
+            </list>
+        </constructor-arg>
+    </bean>
+
+
+
+    <!--声明工具类-->
+    <bean id="jedisClientPool" class="com.yinkai.utils.jedis.JedisClientPool" />
+
+
+
+<!-- 	<bean id="jedisCluster" class="redis.clients.jedis.JedisCluster"> -->
+<!-- 		<constructor-arg> -->
+<!-- 			<set> -->
+<!-- 				<bean class="redis.clients.jedis.HostAndPort"> -->
+<!-- 					<constructor-arg name="host" value="10.24.9.147" /> -->
+<!-- 					<constructor-arg name="port" value="7001" /> -->
+<!-- 				</bean> -->
+<!-- 				<bean class="redis.clients.jedis.HostAndPort"> -->
+<!-- 					<constructor-arg name="host" value="10.24.9.147" /> -->
+<!-- 					<constructor-arg name="port" value="7002" /> -->
+<!-- 				</bean> -->
+<!-- 				<bean class="redis.clients.jedis.HostAndPort"> -->
+<!-- 					<constructor-arg name="host" value="10.24.9.147" /> -->
+<!-- 					<constructor-arg name="port" value="7003" /> -->
+<!-- 				</bean> -->
+<!-- 				<bean class="redis.clients.jedis.HostAndPort"> -->
+<!-- 					<constructor-arg name="host" value="10.24.9.147" /> -->
+<!-- 					<constructor-arg name="port" value="7004" /> -->
+<!-- 				</bean> -->
+<!-- 				<bean class="redis.clients.jedis.HostAndPort"> -->
+<!-- 					<constructor-arg name="host" value="10.24.9.147" /> -->
+<!-- 					<constructor-arg name="port" value="7005" /> -->
+<!-- 				</bean> -->
+<!-- 				<bean class="redis.clients.jedis.HostAndPort"> -->
+<!-- 					<constructor-arg name="host" value="10.24.9.147" /> -->
+<!-- 					<constructor-arg name="port" value="7006" /> -->
+<!-- 				</bean> -->
+<!-- 			</set> -->
+<!-- 		</constructor-arg> -->
+
+<!-- 	</bean> -->
+
+<!-- 	<bean id="jedisClientCluster" class="com.yinkai.jedis.JedisClientCluster"> -->
+
+<!-- 	</bean> -->
+
+
+</beans>
